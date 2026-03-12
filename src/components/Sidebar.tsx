@@ -44,7 +44,7 @@ export function Sidebar() {
             SS
           </div>
           <span className="font-bold text-lg tracking-tight">
-            Section Studio AI
+            Section Studio
           </span>
         </div>
       </div>

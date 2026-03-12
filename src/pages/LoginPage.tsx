@@ -30,7 +30,7 @@ export function LoginPage() {
             SS
           </div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Section Studio AI
+            Section Studio
           </h1>
           <p className="text-muted-foreground mt-2">
             Sign in to your dashboard

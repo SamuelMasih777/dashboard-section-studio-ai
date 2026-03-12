@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   PlusIcon,
   SearchIcon,
@@ -18,20 +19,12 @@ import {
   TableHeader,
   TableRow } from
 '../components/ui/Table';
-import {
-  Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter } from
-'../components/ui/Dialog';
 import { mockSections, mockCategories } from '../lib/mockData';
 import { Section } from '../lib/types';
 export function SectionsPage() {
   const [sections, setSections] = useState<Section[]>(mockSections);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedSection, setSelectedSection] = useState<Section | null>(null);
+  const navigate = useNavigate();
   const filteredSections = sections.filter(
     (section) =>
     section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -50,7 +43,7 @@ export function SectionsPage() {
           </p>
         </div>
         <Button
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={() => navigate('/sections/new')}
           className="w-full sm:w-auto">
           
           <PlusIcon className="w-4 h-4 mr-2" />
@@ -194,59 +187,6 @@ export function SectionsPage() {
         </Table>
       </div>
 
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogHeader>
-          <DialogTitle>Create New Section</DialogTitle>
-          <DialogDescription>
-            Add a new section to your library. You can upload files later.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <label htmlFor="title" className="text-sm font-medium">
-              Title
-            </label>
-            <Input id="title" placeholder="e.g. Split Screen Hero" />
-          </div>
-          <div className="grid gap-2">
-            <label htmlFor="handle" className="text-sm font-medium">
-              Handle
-            </label>
-            <Input id="handle" placeholder="e.g. split-screen-hero" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <label htmlFor="price" className="text-sm font-medium">
-                Price (in cents)
-              </label>
-              <Input id="price" type="number" placeholder="1900" />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="category" className="text-sm font-medium">
-                Category
-              </label>
-              <select
-                id="category"
-                className="glass-input flex h-10 w-full rounded-xl px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                
-                {mockCategories.map((c) =>
-                <option key={c.handle} value={c.handle}>
-                    {c.name}
-                  </option>
-                )}
-              </select>
-            </div>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={() => setIsCreateModalOpen(false)}>
-            Create Section
-          </Button>
-        </DialogFooter>
-      </Dialog>
-    </div>);
-
+    </div>
+  );
 }

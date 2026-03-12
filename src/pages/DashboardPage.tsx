@@ -50,7 +50,7 @@ export function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
-          Welcome back to Section Studio AI. Here's what's happening today.
+          Welcome back to Section Studio. Here's what's happening today.
         </p>
       </div>
 
