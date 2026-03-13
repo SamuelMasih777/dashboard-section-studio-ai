@@ -1,8 +1,8 @@
-import React from 'react';
 import { BellIcon, SearchIcon, MenuIcon } from 'lucide-react';
-import { ThemeToggle } from './ui/ThemeToggle';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
+import { ThemeToggle } from './ui/ThemeToggle';
+
 export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   return (
     <header className="h-16 glass-strong border-b border-border flex items-center justify-between px-4 md:px-6 shrink-0 z-30">
@@ -32,6 +32,6 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           JD
         </div>
       </div>
-    </header>);
-
+    </header>
+  );
 }
