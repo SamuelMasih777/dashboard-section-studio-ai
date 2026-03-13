@@ -115,6 +115,24 @@ export function LoginPage() {
               <Button type="submit" className="w-full" isLoading={isLoading}>
                 Sign In
               </Button>
+              
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="w-full border border-border"
+                onClick={() => {
+                  saveUser({
+                    id: 'demo-1',
+                    name: 'Demo User',
+                    email: 'demo@example.com',
+                    initials: 'DU'
+                  });
+                  navigate('/');
+                }}
+              >
+                Demo Login
+              </Button>
+
               <div className="text-center text-sm text-muted-foreground">
                 Don't have an account?{' '}
                 <Link to="/signup" className="text-primary hover:underline font-medium">
