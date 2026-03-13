@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   PlusIcon,
   SearchIcon,
-  MoreHorizontalIcon,
   EditIcon,
   TrashIcon,
   EyeIcon } from
@@ -22,7 +21,7 @@ import {
 import { mockSections, mockCategories } from '../lib/mockData';
 import { Section } from '../lib/types';
 export function SectionsPage() {
-  const [sections, setSections] = useState<Section[]>(mockSections);
+  const [sections] = useState<Section[]>(mockSections);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const filteredSections = sections.filter(

@@ -9,7 +9,8 @@ import {
   FileCode2, 
   Image as ImageIcon, 
   AlertCircle,
-  Tag as TagIcon
+  Tag as TagIcon,
+  ArrowLeft
 } from 'lucide-react';
 import { createSection } from '../api/sections';
 
@@ -180,6 +181,18 @@ export function CreateSectionPage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
+      <div className="flex items-center gap-2 mb-2">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => navigate(-1)}
+          className="hover:bg-muted"
+        >
+          <ArrowLeft className="w-5 h-5 text-muted-foreground" />
+        </Button>
+        <span className="text-sm font-medium text-muted-foreground">Back to Sections</span>
+      </div>
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">

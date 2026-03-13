@@ -1,16 +1,8 @@
-import React, { useState } from 'react';
-import { PlusIcon, EditIcon, TrashIcon, PackageIcon } from 'lucide-react';
+import { useState } from 'react';
+import { PlusIcon, TrashIcon, PackageIcon } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow } from
-'../components/ui/Table';
 import {
   Dialog,
   DialogHeader,
@@ -21,7 +13,7 @@ import {
 import { mockBundles, mockSections } from '../lib/mockData';
 import { Bundle } from '../lib/types';
 export function BundlesPage() {
-  const [bundles, setBundles] = useState<Bundle[]>(mockBundles);
+  const [bundles] = useState<Bundle[]>(mockBundles);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   return (
     <div className="space-y-6">

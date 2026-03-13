@@ -1,12 +1,10 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import {
   LayersIcon,
   TagIcon,
   FolderIcon,
   PackageIcon,
-  TrendingUpIcon,
-  UsersIcon } from
+  TrendingUpIcon } from
 'lucide-react';
 import {
   mockSections,
@@ -14,6 +12,7 @@ import {
   mockTags,
   mockBundles } from
 '../lib/mockData';
+
 export function DashboardPage() {
   const stats = [
   {
@@ -107,17 +106,17 @@ export function DashboardPage() {
                 className="flex items-center p-3 rounded-xl hover:bg-muted/50 transition-colors">
                 
                   <div className="w-16 h-12 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                    {section.thumbnailUrl ?
-                  <img
-                    src={section.thumbnailUrl}
-                    alt={section.title}
-                    className="w-full h-full object-cover" /> :
-
-
-                  <div className="w-full h-full flex items-center justify-center">
+                    {section.thumbnailUrl ? (
+                      <img
+                        src={section.thumbnailUrl}
+                        alt={section.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
                         <LayersIcon className="w-5 h-5 text-muted-foreground" />
                       </div>
-                  }
+                    )}
                   </div>
                   <div className="ml-4 flex-1">
                     <h4 className="font-medium text-sm">{section.title}</h4>
@@ -170,6 +169,6 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </div>);
-
+    </div>
+  );
 }
