@@ -10,34 +10,42 @@ import {
   CardHeader,
   CardTitle } from
 '../components/ui/Card';
-import { login } from '../api/auth';
+import { signup } from '../api/auth';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { AlertCircle } from 'lucide-react';
 
-export function LoginPage() {
+export function SignupPage() {
   const navigate = useNavigate();
   const { saveUser } = useAuth();
   useTheme(); // Initialize theme hook
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Form state
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
 
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const response = await login(email, password);
+      const response = await signup(name, email, password);
       if (response.success && response.user) {
         saveUser(response.user);
         navigate('/');
       } else {
-        setError(response.error || 'Invalid credentials');
+        setError(response.error || 'Failed to create account');
       }
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
@@ -60,16 +68,16 @@ export function LoginPage() {
             Section Studio
           </h1>
           <p className="text-muted-foreground mt-2">
-            Sign in to your dashboard
+            Create your account to get started
           </p>
         </div>
 
         <Card className="glass-strong border-border/50 shadow-2xl">
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleSignup}>
             <CardHeader>
-              <CardTitle>Welcome back</CardTitle>
+              <CardTitle>Create Account</CardTitle>
               <CardDescription>
-                Enter your credentials to access your account.
+                Join our community and start building today.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -80,27 +88,33 @@ export function LoginPage() {
                 </div>
               )}
               <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium">
+                  Full Name
+                </label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="John Doe"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required />
+              </div>
+              <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
                   Email
                 </label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@example.com"
+                  placeholder="john@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required />
-                
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-sm font-medium">
-                    Password
-                  </label>
-                  <a href="#" className="text-xs text-primary hover:underline">
-                    Forgot password?
-                  </a>
-                </div>
+                <label htmlFor="password" className="text-sm font-medium">
+                  Password
+                </label>
                 <Input
                   id="password"
                   type="password"
@@ -108,17 +122,28 @@ export function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required />
-                
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="confirmPassword" className="text-sm font-medium">
+                  Confirm Password
+                </label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required />
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <Button type="submit" className="w-full" isLoading={isLoading}>
-                Sign In
+                Create Account
               </Button>
               <div className="text-center text-sm text-muted-foreground">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-primary hover:underline font-medium">
-                  Sign up
+                Already have an account?{' '}
+                <Link to="/login" className="text-primary hover:underline font-medium">
+                  Login
                 </Link>
               </div>
             </CardFooter>
