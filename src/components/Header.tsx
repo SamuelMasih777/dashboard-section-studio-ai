@@ -51,7 +51,7 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             className="flex items-center gap-2 p-1 rounded-full hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
           >
             <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-primary-foreground font-medium text-sm border border-border shadow-sm">
-              {user?.initials || 'JD'}
+              {user?.initials || '?'}
             </div>
             <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -59,8 +59,10 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-background border border-border rounded-2xl shadow-2xl py-2 overflow-hidden animate-in fade-in zoom-in duration-200 z-50">
               <div className="px-4 py-3 border-b border-border/50 mb-1 bg-muted/30">
-                <p className="text-sm font-semibold truncate">{user?.name || 'John Doe'}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email || 'admin@example.com'}</p>
+                <p className="text-sm font-semibold truncate">
+                  {user?.name || 'User'}{user?.role ? ` · (${user.role})` : ''}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
               </div>
               
               <button 

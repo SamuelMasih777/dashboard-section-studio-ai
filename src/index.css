@@ -87,7 +87,7 @@
     background: var(--glass-hover);
   }
   .glass-input {
-    background: rgba(var(--background), 0.5);
+    background: hsl(var(--background) / 0.5);
     backdrop-filter: blur(8px);
     border: 1px solid var(--glass-border);
   }
@@ -117,6 +117,15 @@
   }
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: var(--muted-foreground);
+  }
+  .action-btn {
+    @apply transition-all duration-200;
+  }
+  .action-btn:hover {
+    @apply scale-110 shadow-lg brightness-110;
+  }
+  tr:hover .action-btn {
+    @apply opacity-100 translate-x-0;
   }
 }
 /* Animations for floating and blob effects */

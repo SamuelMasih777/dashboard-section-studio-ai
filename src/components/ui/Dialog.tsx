@@ -5,8 +5,9 @@ interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
+  maxWidth?: string;
 }
-export function Dialog({ open, onOpenChange, children }: DialogProps) {
+export function Dialog({ open, onOpenChange, children, maxWidth = 'max-w-lg' }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -27,7 +28,7 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   }, [open, onOpenChange]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-10 md:p-14">
       <div
         className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
         onClick={() => onOpenChange(false)}
@@ -35,7 +36,7 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
       
       <div
         ref={dialogRef}
-        className="glass-strong relative z-50 grid w-full max-w-lg gap-4 rounded-2xl border border-border p-6 shadow-lg duration-200 animate-in fade-in-90 zoom-in-95"
+        className={`glass-strong relative z-50 grid w-full ${maxWidth} overflow-hidden rounded-2xl border border-border shadow-lg duration-200 animate-in fade-in-90 zoom-in-95`}
         role="dialog"
         aria-modal="true">
         
@@ -60,7 +61,7 @@ export function DialogHeader({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`flex flex-col space-y-1.5 text-center sm:text-left ${className}`}
+      className={`flex flex-col space-y-1.5 p-6 text-center sm:text-left ${className}`}
       {...props}>
       
       {children}
