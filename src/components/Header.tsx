@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { BellIcon, SearchIcon, MenuIcon, User as UserIcon, LogOut as LogOutIcon, ChevronDown } from 'lucide-react';
+import { SearchIcon, MenuIcon, User as UserIcon, LogOut as LogOutIcon, ChevronDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
 import { ThemeToggle } from './ui/ThemeToggle';
@@ -39,11 +40,6 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
       <div className="flex items-center gap-2 md:gap-4">
         <ThemeToggle />
 
-        <Button variant="ghost" size="icon" className="relative">
-          <BellIcon className="w-5 h-5" />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full"></span>
-        </Button>
-
         {/* Profile Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button 
@@ -65,13 +61,14 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                 <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
               </div>
               
-              <button 
+              <Link 
+                to="/settings"
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted transition-colors text-left"
                 onClick={() => setIsDropdownOpen(false)}
               >
                 <UserIcon className="w-4 h-4 text-muted-foreground" />
                 <span>My Account</span>
-              </button>
+              </Link>
               
               <div className="h-px bg-border/50 my-1" />
               

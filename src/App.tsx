@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
@@ -8,6 +8,9 @@ import { CreateSectionPage } from './pages/CreateSectionPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { TagsPage } from './pages/TagsPage';
 import { BundlesPage } from './pages/BundlesPage';
+import { SettingsPage } from './pages/SettingsPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+
 export function App() {
   return (
     <BrowserRouter>
@@ -22,17 +25,11 @@ export function App() {
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="tags" element={<TagsPage />} />
           <Route path="bundles" element={<BundlesPage />} />
-          <Route
-            path="settings"
-            element={
-            <div className="p-8 text-center text-muted-foreground">
-                Settings page coming soon
-              </div>
-            } />
+          <Route path="settings" element={<SettingsPage />} />
           
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>);
 
