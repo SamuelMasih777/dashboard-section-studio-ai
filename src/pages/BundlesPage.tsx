@@ -16,6 +16,8 @@ import { Bundle, Section } from '../lib/types';
 import { getBundles, createBundle, updateBundle, deleteBundle } from '../api/bundles';
 import { getSections } from '../api/sections';
 import React from 'react';
+import { LoadingState } from '../components/ui/LoadingState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 export function BundlesPage() {
   const [bundles, setBundles] = useState<Bundle[]>([]);
@@ -201,10 +203,28 @@ export function BundlesPage() {
         </div>
       )}
 
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <Loader2 className="w-10 h-10 text-primary animate-spin" />
-          <p className="text-muted-foreground font-medium">Loading bundles...</p>
+      {isLoading && bundles.length === 0 && !error ? (
+        <LoadingState message="Connecting to Section Studio..." />
+      ) : isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="glass rounded-2xl overflow-hidden flex flex-col border-border/50">
+              <Skeleton className="h-48 w-full rounded-none" />
+              <div className="p-6 flex-1 flex flex-col gap-4">
+                <div className="flex justify-between">
+                  <Skeleton className="h-6 w-1/2" />
+                  <Skeleton className="h-6 w-1/4" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <div className="flex gap-2 mt-auto pt-4">
+                  <Skeleton className="h-9 flex-1" />
+                  <Skeleton className="h-9 flex-1" />
+                  <Skeleton className="h-9 w-9" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : bundles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -12,8 +12,8 @@ import {
   X,
   FileCode2,
   Image as ImageIcon,
-  Check } from
-'lucide-react';
+  Check
+} from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
@@ -38,6 +38,8 @@ import { getSections, deleteSection, createSection, updateSection } from '../api
 import { getCategories } from '../api/categories';
 import { Section, Category } from '../lib/types';
 import React from 'react';
+import { LoadingState } from '../components/ui/LoadingState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 
 
@@ -324,7 +326,7 @@ export function SectionsPage() {
         </div>
       </div>
 
-      {error && (
+      {error && !isFormModalOpen && (
         <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-xl flex items-start gap-3 text-destructive animate-in slide-in-from-top-2">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <p className="text-sm font-medium">{error}</p>
@@ -334,8 +336,11 @@ export function SectionsPage() {
         </div>
       )}
 
-      <div className="glass rounded-2xl overflow-hidden border-border/50">
-        <div className="overflow-x-auto">
+      {isLoading && sections.length === 0 && !error ? (
+        <LoadingState message="Connecting to Section Studio..." />
+      ) : (
+        <div className="glass rounded-2xl overflow-hidden border-border/50">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-muted/30">
               <TableRow>
@@ -349,14 +354,24 @@ export function SectionsPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-64 text-center">
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                      <p className="text-muted-foreground text-sm font-medium">Fetching sections...</p>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="w-12 h-12 rounded-lg" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-32" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
+                  </TableRow>
+                ))
               ) : sections.length > 0 ? (
                 sections.map((section) => (
                   <TableRow key={section.id} className="group hover:bg-muted/30 transition-colors">
@@ -485,6 +500,7 @@ export function SectionsPage() {
           isLoading={isLoading}
         />
       </div>
+      )}
 
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen} maxWidth="max-w-4xl">
         <DialogHeader>

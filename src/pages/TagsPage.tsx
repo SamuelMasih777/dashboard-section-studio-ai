@@ -23,6 +23,8 @@ import {
 import { Tag, Section } from '../lib/types';
 import { getTags, createTag, updateTag, deleteTag } from '../api/tags';
 import { getSections } from '../api/sections';
+import { LoadingState } from '../components/ui/LoadingState';
+import { Skeleton } from '../components/ui/Skeleton';
 
 export function TagsPage() {
   const [tags, setTags] = useState<Tag[]>([]);
@@ -202,8 +204,11 @@ export function TagsPage() {
         </div>
       )}
 
-      <div className="glass rounded-2xl overflow-hidden border-border/50">
-        <Table>
+      {isLoading && tags.length === 0 && !error ? (
+        <LoadingState message="Connecting to Section Studio..." />
+      ) : (
+        <div className="glass rounded-2xl overflow-hidden border-border/50">
+          <Table>
           <TableHeader className="bg-muted/30">
             <TableRow>
               <TableHead className="w-[80px] text-center">Emoji</TableHead>
@@ -216,14 +221,16 @@ export function TagsPage() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-64 text-center">
-                  <div className="flex flex-col items-center justify-center gap-3">
-                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                    <p className="text-muted-foreground text-sm font-medium">Fetching tags...</p>
-                  </div>
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell className="text-center"><Skeleton className="w-8 h-8 rounded-md mx-auto" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-12" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                  <TableCell className="text-right"><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
+                </TableRow>
+              ))
             ) : tags.length > 0 ? (
               tags.map((tag) => (
                 <TableRow key={tag.handle} className="group hover:bg-muted/30 border-border/50 transition-colors">
@@ -312,6 +319,7 @@ export function TagsPage() {
           isLoading={isLoading}
         />
       </div>
+      )}
 
       <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
         setIsCreateModalOpen(open);
