@@ -101,7 +101,7 @@ export function BundlesPage() {
     setDiscount(bundle.discount.toString());
     setDescription(bundle.description || '');
     setIsActive(bundle.isActive);
-    setSelectedSectionIds(bundle.sectionIds);
+    setSelectedSectionIds(bundle.sectionIds || []);
     setIsEditing(true);
     setIsCreateModalOpen(true);
   };
@@ -250,7 +250,7 @@ export function BundlesPage() {
                     variant={bundle.isActive ? 'default' : 'secondary'}
                     className={
                       bundle.isActive ? 
-                      'bg-green-500/90 text-white border-green-500/20 backdrop-blur-md' : 
+                      'bg-primary text-primary-foreground shadow-md font-bold tracking-wider' : 
                       'backdrop-blur-md'
                     }
                   >
@@ -280,60 +280,34 @@ export function BundlesPage() {
 
                 <div className="mb-6">
                   <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 opacity-70">
-                    Includes {bundle.sectionIds.length} sections
+                    Includes {(bundle.sectionIds || []).length} sections
                   </div>
-                  <div className="flex -space-x-3 overflow-hidden p-1">
-                    {bundle.sectionIds.slice(0, 5).map((sectionId, i) => {
-                      const section = getSectionDetails(sectionId);
-                      return (
-                        <div
-                          key={sectionId}
-                          className="inline-block h-9 w-9 rounded-full ring-2 ring-background bg-muted overflow-hidden relative shadow-sm"
-                          style={{ zIndex: 10 - i }}
-                        >
-                          {section?.thumbnailUrl ? (
-                            <img
-                              src={section.thumbnailUrl}
-                              alt={section.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-muted-foreground">
-                              {section?.title?.charAt(0) || '?'}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {bundle.sectionIds.length > 5 && (
-                      <div className="inline-flex h-9 w-9 items-center justify-center rounded-full ring-2 ring-background bg-muted text-xs font-bold text-muted-foreground relative z-0 shadow-sm">
-                        +{bundle.sectionIds.length - 5}
-                      </div>
-                    )}
-                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                    {(bundle.sectionIds || []).map(id => getSectionDetails(id)?.title || 'Unknown Section').join(' • ')}
+                  </p>
                 </div>
 
                 <div className="flex gap-2 mt-auto pt-4 border-t border-border/50">
                   <Button 
-                    variant="outline" 
-                    className="action-btn flex-1 glass-hover text-xs font-bold uppercase tracking-wider h-9"
+                    variant="secondary" 
+                    className="flex-1 text-xs font-bold uppercase tracking-wider h-9 shadow-sm"
                     onClick={() => handleView(bundle)}
                   >
                     <EyeIcon className="w-3.5 h-3.5 mr-2" />
                     View
                   </Button>
                   <Button 
-                    variant="outline" 
-                    className="action-btn flex-1 glass-hover text-xs font-bold uppercase tracking-wider h-9"
+                    variant="primary" 
+                    className="flex-1 text-xs font-bold uppercase tracking-wider h-9 shadow-sm"
                     onClick={() => handleEdit(bundle)}
                   >
                     <EditIcon className="w-3.5 h-3.5 mr-2" />
                     Edit
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="destructive"
                     size="icon"
-                    className="action-btn h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive border-border/50"
+                    className="h-9 w-9 opacity-90 hover:opacity-100 transition-opacity shadow-sm"
                     onClick={() => confirmDelete(bundle)}
                     disabled={isDeleting === bundle.id}
                   >
@@ -456,7 +430,7 @@ export function BundlesPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief description of this bundle"
-                className="w-full min-h-[80px] rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all"
+                className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all"
               />
             </div>
             <div className="grid gap-2">
@@ -567,23 +541,20 @@ export function BundlesPage() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Included Sections ({selectedBundle?.sectionIds.length})</p>
-            <div className="grid gap-2">
-              {selectedBundle?.sectionIds.map(id => {
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Included Sections ({(selectedBundle?.sectionIds || []).length})</p>
+            <div className="flex flex-wrap gap-2">
+              {(selectedBundle?.sectionIds || []).map(id => {
                 const section = getSectionDetails(id);
                 return (
-                  <div key={id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 border border-border/30">
-                    <div className="w-10 h-10 rounded bg-muted overflow-hidden flex-shrink-0">
-                      {section?.thumbnailUrl ? (
-                        <img src={section.thumbnailUrl} alt={section.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">?</div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold truncate">{section?.title || 'Unknown Section'}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">{section?.handle}</p>
-                    </div>
+                  <div key={id} className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 shadow-sm">
+                    {section?.thumbnailUrl ? (
+                      <img src={section.thumbnailUrl} alt={section.title} className="w-5 h-5 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center bg-background border border-border text-[10px] font-bold text-muted-foreground">
+                        {section?.title?.charAt(0) || '?'}
+                      </div>
+                    )}
+                    <span className="text-xs font-medium text-foreground">{section?.title || 'Unknown Section'}</span>
                   </div>
                 );
               })}

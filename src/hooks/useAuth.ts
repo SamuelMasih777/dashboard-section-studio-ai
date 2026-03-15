@@ -7,7 +7,7 @@ export function useAuth() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const isAuthenticated = true ||!!user;
+  const isAuthenticated = !!user;
 
   const saveUser = (userData: User) => {
     setUser(userData);
