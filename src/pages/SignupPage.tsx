@@ -141,23 +141,6 @@ export function SignupPage() {
                 Create Account
               </Button>
 
-              <Button 
-                type="button" 
-                variant="ghost" 
-                className="w-full border border-border"
-                onClick={() => {
-                  saveUser({
-                    id: 'demo-1',
-                    name: 'Demo User',
-                    email: 'demo@example.com',
-                    initials: 'DU'
-                  });
-                  navigate('/');
-                }}
-              >
-                Demo Login (Skip)
-              </Button>
-
               <div className="text-center text-sm text-muted-foreground">
                 Already have an account?{' '}
                 <Link to="/login" className="text-primary hover:underline font-medium">
