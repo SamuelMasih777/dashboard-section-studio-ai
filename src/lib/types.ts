@@ -39,6 +39,8 @@ export interface Section {
   updatedAt: string;
   compareAtPrice?: number;
   presetsCount: number;
+  isActive: boolean;
+  updatedBy?: any;
 }
 
 export interface SectionFile {

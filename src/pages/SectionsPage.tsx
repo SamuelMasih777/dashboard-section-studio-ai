@@ -61,6 +61,8 @@ export function SectionsPage() {
 
   // Form State
   const [title, setTitle] = useState('');
+  const [handle, setHandle] = useState('');
+  const [isHandleEdited, setIsHandleEdited] = useState(false);
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Testimonial');
   const [sortOrder, setSortOrder] = useState('0');
@@ -73,6 +75,7 @@ export function SectionsPage() {
   const [previewVideoUrl, setPreviewVideoUrl] = useState('');
   const [isPublished, setIsPublished] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   // Files State
   const [liquidFile, setLiquidFile] = useState<File | null>(null);
@@ -179,6 +182,8 @@ export function SectionsPage() {
     
     // Fill form
     setTitle(section.title);
+    setHandle(section.handle);
+    setIsHandleEdited(true);
     setDescription(section.description || '');
     setCategory(section.category);
     setSortOrder(section.sortOrder.toString());
@@ -190,12 +195,15 @@ export function SectionsPage() {
     setPreviewVideoUrl(section.previewVideoUrl || '');
     setIsPublished(section.isPublished);
     setIsFeatured(section.isFeatured);
+    setIsActive(section.isActive);
     
     setIsFormModalOpen(true);
   };
 
   const clearForm = () => {
     setTitle('');
+    setHandle('');
+    setIsHandleEdited(false);
     setDescription('');
     setCategory(categories[0]?.handle || '');
     setSortOrder('0');
@@ -211,8 +219,28 @@ export function SectionsPage() {
     setPreviewVideoUrl('');
     setIsPublished(true);
     setIsFeatured(false);
+    setIsActive(true);
     setError(null);
   };
+
+  const slugify = (text: string) => {
+    return text.toString().toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '');
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setTitle(val);
+    if (!isHandleEdited) {
+      setHandle(slugify(val));
+    }
+  };
+
+  const currentHandle = handle || slugify(title);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -252,6 +280,7 @@ export function SectionsPage() {
     try {
       const formData = new FormData();
       formData.append('title', title);
+      formData.append('handle', handle || slugify(title));
       formData.append('description', description);
       formData.append('price', (parseFloat(price) * 100).toString());
       if (compareAtPrice) formData.append('compareAtPrice', (parseFloat(compareAtPrice) * 100).toString());
@@ -260,6 +289,7 @@ export function SectionsPage() {
       formData.append('demoUrl', demoUrl);
       formData.append('isFeatured', isFeatured.toString());
       formData.append('isPublished', isPublished.toString());
+      formData.append('isActive', isActive.toString());
       formData.append('presetsCount', presetsCount);
       formData.append('sortOrder', sortOrder);
       if (previewVideoUrl) formData.append('previewVideoUrl', previewVideoUrl);
@@ -534,12 +564,23 @@ export function SectionsPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Status</p>
-                <Badge 
-                  variant={selectedSection?.isPublished ? 'default' : 'outline'}
-                  className={selectedSection?.isPublished ? 'bg-green-500/10 text-green-600 border-green-500/10' : ''}
-                >
-                  {selectedSection?.isPublished ? 'Published' : 'Draft'}
-                </Badge>
+                <div className="flex flex-wrap gap-2">
+                  <Badge 
+                    variant={selectedSection?.isPublished ? 'default' : 'outline'}
+                    className={selectedSection?.isPublished ? 'bg-green-500/10 text-green-600 border-green-500/10' : ''}
+                  >
+                    {selectedSection?.isPublished ? 'Published' : 'Draft'}
+                  </Badge>
+                  <Badge 
+                    variant={selectedSection?.isActive ? 'default' : 'outline'}
+                    className={selectedSection?.isActive ? 'bg-blue-500/10 text-blue-600 border-blue-500/10' : 'opacity-50'}
+                  >
+                    {selectedSection?.isActive ? 'Active' : 'Inactive'}
+                  </Badge>
+                  {selectedSection?.isFeatured && (
+                    <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/10">Featured</Badge>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -551,18 +592,64 @@ export function SectionsPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 bg-muted/30 p-4 rounded-xl">
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Handle</p>
-              <code className="text-xs bg-muted px-2 py-1 rounded font-mono">{selectedSection?.handle}</code>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">ID</p>
+              <p className="text-xs font-mono truncate">{selectedSection?.id}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Sort Order</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Handle</p>
+              <code className="text-[10px] bg-background/50 px-1.5 py-0.5 rounded font-mono">{selectedSection?.handle}</code>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Sort Order</p>
               <p className="text-sm font-bold">{selectedSection?.sortOrder}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Presets</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Presets</p>
               <p className="text-sm font-bold">{selectedSection?.presetsCount}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Compare At Price</p>
+              <p className="text-sm font-bold">
+                {selectedSection?.compareAtPrice ? `$${(selectedSection.compareAtPrice / 100).toFixed(2)}` : 'N/A'}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Demo URL</p>
+              {selectedSection?.demoUrl ? (
+                <a href={selectedSection.demoUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate block max-w-[150px]">
+                  View Demo Store
+                </a>
+              ) : <p className="text-xs text-muted-foreground">No Demo URL</p>}
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Preview Video</p>
+              {selectedSection?.previewVideoUrl ? (
+                <a href={selectedSection.previewVideoUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate block max-w-[150px]">
+                  View Video
+                </a>
+              ) : <p className="text-xs text-muted-foreground">No Video</p>}
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Updated By</p>
+              <p className="text-xs truncate font-medium">{selectedSection?.updatedBy?.name || 'System'}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Created At</p>
+              <p className="text-[10px] font-medium">
+                {selectedSection?.createdAt 
+                  ? new Date(selectedSection.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) + ' IST' 
+                  : 'N/A'}
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Updated At</p>
+              <p className="text-[10px] font-medium">
+                {selectedSection?.updatedAt 
+                  ? new Date(selectedSection.updatedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) + ' IST' 
+                  : 'N/A'}
+              </p>
             </div>
           </div>
 
@@ -615,14 +702,28 @@ export function SectionsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Left Column: Basic Info */}
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Title <span className="text-destructive">*</span></label>
-                  <Input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g. Testimonial Carousel"
-                    className="glass-input h-11"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Title <span className="text-destructive">*</span></label>
+                    <Input
+                      value={title}
+                      onChange={handleTitleChange}
+                      placeholder="e.g. Testimonial Carousel"
+                      className="glass-input h-11"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Handle <span className="text-destructive">*</span></label>
+                    <Input
+                      value={handle}
+                      onChange={(e) => {
+                        setHandle(e.target.value);
+                        setIsHandleEdited(true);
+                      }}
+                      placeholder="e.g. testimonial-carousel"
+                      className="glass-input h-11"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -687,7 +788,7 @@ export function SectionsPage() {
 
               {/* Right Column: Pricing & Files */}
               <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Price ($)</label>
                     <Input
@@ -698,6 +799,16 @@ export function SectionsPage() {
                     />
                   </div>
                   <div className="space-y-2">
+                    <label className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Compare Price</label>
+                    <Input
+                      type="number"
+                      value={compareAtPrice}
+                      onChange={(e) => setCompareAtPrice(e.target.value)}
+                      className="glass-input h-11"
+                      placeholder="e.g. 14"
+                    />
+                  </div>
+                  <div className="space-y-2 lg:col-span-1 md:col-span-2">
                     <label className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Presets</label>
                     <Input
                       type="number"
@@ -769,6 +880,28 @@ export function SectionsPage() {
                   )}
                 </div>
 
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Demo URL</label>
+                  <Input 
+                    value={demoUrl}
+                    onChange={(e) => setDemoUrl(e.target.value)}
+                    placeholder={`https://demo.yourdomain.com/products/${currentHandle || 'testimonial-9'}`}
+                    className="glass-input h-11"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">Link to your live demo store page showing this section</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Preview Video URL</label>
+                  <Input 
+                    value={previewVideoUrl}
+                    onChange={(e) => setPreviewVideoUrl(e.target.value)}
+                    placeholder="https://youtube.com/watch?v=... or direct MP4 URL"
+                    className="glass-input h-11"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">Shown in modal. YouTube embed or direct .mp4 link</p>
+                </div>
+
                 <div className="flex flex-col gap-4 pt-2">
                   <label className="flex items-center gap-3 cursor-pointer group">
                     <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} className="peer sr-only" />
@@ -783,6 +916,13 @@ export function SectionsPage() {
                       {isFeatured && <Check className="w-3.5 h-3.5 text-primary-foreground stroke-[4]" />}
                     </div>
                     <span className="text-sm font-medium">Featured</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="peer sr-only" />
+                    <div className="w-5 h-5 border-2 rounded border-muted-foreground bg-background peer-checked:bg-primary peer-checked:border-primary transition-colors flex items-center justify-center">
+                      {isActive && <Check className="w-3.5 h-3.5 text-primary-foreground stroke-[4]" />}
+                    </div>
+                    <span className="text-sm font-medium">Active</span>
                   </label>
                 </div>
               </div>
@@ -804,7 +944,7 @@ export function SectionsPage() {
         onClose={() => setIsConfirmDeleteOpen(false)}
         onConfirm={handleDelete}
         title="Delete Section"
-        description={`Are you sure you want to delete "${sectionToDelete?.title}"? This will permanently remove the section and its files.`}
+        description={`Are you sure you want to delete "${sectionToDelete?.title}" (handle: ${sectionToDelete?.handle})? This will permanently remove the section and its files.`}
         isLoading={isDeleting !== null}
         confirmText="Delete Section"
       />

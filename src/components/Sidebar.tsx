@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import {
   LayoutDashboardIcon,
   LayersIcon,
@@ -51,14 +51,14 @@ export function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="h-16 flex items-center justify-between px-6 border-b border-border shrink-0">
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold">
               SS
             </div>
             <span className="font-bold text-lg tracking-tight">
               Section Studio
             </span>
-          </div>
+          </Link>
           <button onClick={onClose} className="md:hidden p-2 -mr-2 text-muted-foreground hover:text-foreground">
             <X className="w-5 h-5" />
           </button>
