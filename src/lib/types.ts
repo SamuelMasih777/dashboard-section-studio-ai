@@ -64,3 +64,10 @@ export interface Bundle {
   updatedAt: string;
   sectionIds: string[];
 }
+
+export interface PaginationInfo {
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  limit: number;
+}

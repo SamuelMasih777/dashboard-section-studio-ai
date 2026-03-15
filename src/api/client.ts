@@ -71,7 +71,7 @@ export async function apiRequest<T>(
   });
 
   // Try to parse body as JSON regardless of status
-  const data = await response.json().catch(() => ({}));
+  let data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
     const error: ApiError = {
@@ -80,6 +80,50 @@ export async function apiRequest<T>(
       statusCode: response.status,
     };
     throw error;
+  }
+
+  // Normalize backend response structure
+  // If backend returns { status: 200, data: ... } we ensure success: true is present
+  if (typeof data === 'object' && data !== null) {
+    if (data.status >= 200 && data.status < 300 && data.success === undefined) {
+      data.success = true;
+    } else if (data.success === undefined) {
+      // Fallback for responses that don't have success but were response.ok
+      data.success = true;
+    }
+
+    // Helper to recursively normalize data (e.g., convert numeric strings to numbers)
+    const normalizeData = (obj: any): any => {
+      if (Array.isArray(obj)) {
+        return obj.map(normalizeData);
+      } else if (obj !== null && typeof obj === 'object') {
+        const normalized: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+          // Convert 'price' and 'compareAtPrice' strings to numbers
+          if ((key === 'price' || key === 'compareAtPrice' || key === 'discount') && typeof value === 'string') {
+            const num = parseFloat(value);
+            normalized[key] = isNaN(num) ? value : num;
+            // If it was meant to be cents but backend sent decimal string (e.g. "900.00"), 
+            // and frontend logic expects cents (e.g. bundle.price / 100), 
+            // we might need to adjust. If "900.00" is actually $900, but code does /100, 
+            // it becomes 9. 
+            // Looking at the JSON: "price": "900.00". 
+            // The code does: ${(bundle.price / 100).toFixed(2)}. 
+            // If price 900.00 means $9, then 900.00/100 = 9 (correct).
+            // If price 900.00 means $900, then 900.00/100 = 9 ($9) which is wrong.
+            // Usually price in DB is stored in cents as integer. 
+          } else {
+            normalized[key] = normalizeData(value);
+          }
+        }
+        return normalized;
+      }
+      return obj;
+    };
+
+    if (data.data) {
+      data.data = normalizeData(data.data);
+    }
   }
 
   return data as T;

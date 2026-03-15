@@ -1,12 +1,19 @@
-import { apiRequest, API_BASE_URL } from './client';
-import type { Tag } from '../lib/types';
+import { apiRequest } from './client';
+import type { Tag, PaginationInfo } from '../lib/types';
 
 // ─── Types ───────────────────────────────────────────────
 
 export interface TagsListResponse {
   success: boolean;
   data: Tag[];
+  pagination: PaginationInfo;
   error?: string;
+}
+
+export interface TagFilters {
+  search?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface TagDetailResponse {
@@ -21,16 +28,50 @@ export interface CreateTagResponse {
   error?: string;
 }
 
+// ─── Cache ────────────────────────────────────────────────
+let tagsCache: TagsListResponse | null = null;
+export const clearTagsCache = () => { tagsCache = null; };
+
 // ─── Endpoints ───────────────────────────────────────────
 
 /**
  * GET /api/tags/ — Retrieve all tags. Requires Auth.
  */
-export const getTags = async (): Promise<TagsListResponse> => {
+export const getTags = async (
+  filters: TagFilters = {}
+): Promise<TagsListResponse> => {
+  // Simple cache for default listing (unfiltered)
+  const isDefaultFetch = !filters.search && !filters.page && (!filters.limit || filters.limit === 1000);
+  if (isDefaultFetch && tagsCache) {
+    return tagsCache;
+  }
+
   try {
-    return await apiRequest<TagsListResponse>('/tags');
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') params.append(key, String(value));
+    });
+    const query = params.toString();
+    const endpoint = `/tags${query ? `?${query}` : ''}`;
+    const res = await apiRequest<TagsListResponse>(endpoint);
+
+    if (res.success && isDefaultFetch) {
+      tagsCache = res;
+    }
+
+    return res;
   } catch (error: any) {
-    return { success: false, data: [], error: error.message || 'Failed to fetch tags' };
+    return { 
+      success: false, 
+      data: [], 
+      pagination: {
+        totalCount: 0,
+        totalPages: 0,
+        currentPage: 1,
+        limit: 10
+      }, 
+      error: error.message || 'Failed to fetch tags' 
+    };
   }
 };
 
@@ -55,26 +96,12 @@ export const createTag = async (
   formData: FormData
 ): Promise<CreateTagResponse> => {
   try {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const response = await fetch(`${API_BASE_URL}/tags`, {
+    const res = await apiRequest<CreateTagResponse>('/tags', {
       method: 'POST',
-      headers,
       body: formData,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return {
-        success: false,
-        error: errorData.message || `HTTP error! status: ${response.status}`,
-      };
-    }
-
-    const data = await response.json();
-    return { success: true, tagId: data.tagId };
+    if (res.success) clearTagsCache();
+    return res;
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to create tag' };
   }
@@ -88,26 +115,12 @@ export const updateTag = async (
   formData: FormData
 ): Promise<CreateTagResponse> => {
   try {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const response = await fetch(`${API_BASE_URL}/tags/${handle}`, {
+    const res = await apiRequest<CreateTagResponse>(`/tags/${handle}`, {
       method: 'PUT',
-      headers,
       body: formData,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return {
-        success: false,
-        error: errorData.message || `HTTP error! status: ${response.status}`,
-      };
-    }
-
-    const data = await response.json();
-    return { success: true, tagId: data.tagId };
+    if (res.success) clearTagsCache();
+    return res;
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to update tag' };
   }
@@ -120,9 +133,11 @@ export const deleteTag = async (
   handle: string
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    return await apiRequest<{ success: boolean }>(`/tags/${handle}`, {
+    const res = await apiRequest<{ success: boolean }>(`/tags/${handle}`, {
       method: 'DELETE',
     });
+    if (res.success) clearTagsCache();
+    return res;
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to delete tag' };
   }

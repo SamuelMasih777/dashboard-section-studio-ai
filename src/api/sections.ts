@@ -1,5 +1,5 @@
 import { apiRequest, API_BASE_URL } from './client';
-import type { Section } from '../lib/types';
+import type { Section, PaginationInfo } from '../lib/types';
 
 // Re-export so existing imports of API_BASE_URL keep working
 export { API_BASE_URL };
@@ -9,7 +9,7 @@ export { API_BASE_URL };
 export interface SectionsListResponse {
   success: boolean;
   data: Section[];
-  total?: number;
+  pagination: PaginationInfo;
   error?: string;
 }
 
@@ -35,6 +35,10 @@ export interface SectionFilters {
   limit?: number;
 }
 
+// ─── Cache ────────────────────────────────────────────────
+let sectionsMetadataCache: SectionsListResponse | null = null;
+export const clearSectionsCache = () => { sectionsMetadataCache = null; };
+
 // ─── Endpoints ───────────────────────────────────────────
 
 /**
@@ -43,6 +47,12 @@ export interface SectionFilters {
 export const getSections = async (
   filters: SectionFilters = {}
 ): Promise<SectionsListResponse> => {
+  // Simple cache for metadata fetch (all sections for counts/selection)
+  const isMetadataFetch = !filters.search && !filters.page && filters.limit === 1000;
+  if (isMetadataFetch && sectionsMetadataCache) {
+    return sectionsMetadataCache;
+  }
+
   try {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
@@ -50,9 +60,25 @@ export const getSections = async (
     });
     const query = params.toString();
     const endpoint = `/sections${query ? `?${query}` : ''}`;
-    return await apiRequest<SectionsListResponse>(endpoint);
+    const res = await apiRequest<SectionsListResponse>(endpoint);
+
+    if (res.success && isMetadataFetch) {
+      sectionsMetadataCache = res;
+    }
+
+    return res;
   } catch (error: any) {
-    return { success: false, data: [], error: error.message || 'Failed to fetch sections' };
+    return { 
+      success: false, 
+      data: [], 
+      pagination: {
+        totalCount: 0,
+        totalPages: 0,
+        currentPage: 1,
+        limit: 10
+      }, 
+      error: error.message || 'Failed to fetch sections' 
+    };
   }
 };
 
@@ -77,25 +103,12 @@ export const createSection = async (
   formData: FormData
 ): Promise<CreateSectionResponse> => {
   try {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const response = await fetch(`${API_BASE_URL}/sections`, {
+    const res = await apiRequest<CreateSectionResponse>('/sections', {
       method: 'POST',
-      headers,
       body: formData,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return {
-        success: false,
-        error: errorData.message || `HTTP error! status: ${response.status}`,
-      };
-    }
-
-    return await response.json();
+    if (res.success) clearSectionsCache();
+    return res;
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to create section' };
   }
@@ -110,25 +123,12 @@ export const updateSection = async (
   formData: FormData
 ): Promise<CreateSectionResponse> => {
   try {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const response = await fetch(`${API_BASE_URL}/sections/${id}`, {
+    const res = await apiRequest<CreateSectionResponse>(`/sections/${id}`, {
       method: 'PUT',
-      headers,
       body: formData,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return {
-        success: false,
-        error: errorData.message || `HTTP error! status: ${response.status}`,
-      };
-    }
-
-    return await response.json();
+    if (res.success) clearSectionsCache();
+    return res;
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to update section' };
   }
@@ -141,9 +141,11 @@ export const deleteSection = async (
   id: string
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    return await apiRequest<{ success: boolean }>(`/sections/${id}`, {
+    const res = await apiRequest<{ success: boolean }>(`/sections/${id}`, {
       method: 'DELETE',
     });
+    if (res.success) clearSectionsCache();
+    return res;
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to delete section' };
   }

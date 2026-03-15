@@ -1,12 +1,19 @@
-import { apiRequest, API_BASE_URL } from './client';
-import type { Category } from '../lib/types';
+import { apiRequest } from './client';
+import type { Category, PaginationInfo } from '../lib/types';
 
 // ─── Types ───────────────────────────────────────────────
 
 export interface CategoriesListResponse {
   success: boolean;
   data: Category[];
+  pagination: PaginationInfo;
   error?: string;
+}
+
+export interface CategoryFilters {
+  search?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface CategoryDetailResponse {
@@ -21,16 +28,50 @@ export interface CreateCategoryResponse {
   error?: string;
 }
 
+// ─── Cache ────────────────────────────────────────────────
+let categoriesCache: CategoriesListResponse | null = null;
+export const clearCategoriesCache = () => { categoriesCache = null; };
+
 // ─── Endpoints ───────────────────────────────────────────
 
 /**
  * GET /api/categories/ — Retrieve all categories. Requires Auth.
  */
-export const getCategories = async (): Promise<CategoriesListResponse> => {
+export const getCategories = async (
+  filters: CategoryFilters = {}
+): Promise<CategoriesListResponse> => {
+  // Simple cache for default listing (unfiltered)
+  const isDefaultFetch = !filters.search && !filters.page && (!filters.limit || filters.limit === 1000);
+  if (isDefaultFetch && categoriesCache) {
+    return categoriesCache;
+  }
+
   try {
-    return await apiRequest<CategoriesListResponse>('/categories');
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') params.append(key, String(value));
+    });
+    const query = params.toString();
+    const endpoint = `/categories${query ? `?${query}` : ''}`;
+    const res = await apiRequest<CategoriesListResponse>(endpoint);
+    
+    if (res.success && isDefaultFetch) {
+      categoriesCache = res;
+    }
+    
+    return res;
   } catch (error: any) {
-    return { success: false, data: [], error: error.message || 'Failed to fetch categories' };
+    return { 
+      success: false, 
+      data: [], 
+      pagination: {
+        totalCount: 0,
+        totalPages: 0,
+        currentPage: 1,
+        limit: 10
+      }, 
+      error: error.message || 'Failed to fetch categories' 
+    };
   }
 };
 
@@ -55,26 +96,12 @@ export const createCategory = async (
   formData: FormData
 ): Promise<CreateCategoryResponse> => {
   try {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const response = await fetch(`${API_BASE_URL}/categories`, {
+    const res = await apiRequest<CreateCategoryResponse>('/categories', {
       method: 'POST',
-      headers,
       body: formData,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return {
-        success: false,
-        error: errorData.message || `HTTP error! status: ${response.status}`,
-      };
-    }
-
-    const data = await response.json();
-    return { success: true, categoryId: data.categoryId };
+    if (res.success) clearCategoriesCache();
+    return res;
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to create category' };
   }
@@ -88,26 +115,12 @@ export const updateCategory = async (
   formData: FormData
 ): Promise<CreateCategoryResponse> => {
   try {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const response = await fetch(`${API_BASE_URL}/categories/${handle}`, {
+    const res = await apiRequest<CreateCategoryResponse>(`/categories/${handle}`, {
       method: 'PUT',
-      headers,
       body: formData,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return {
-        success: false,
-        error: errorData.message || `HTTP error! status: ${response.status}`,
-      };
-    }
-
-    const data = await response.json();
-    return { success: true, categoryId: data.categoryId };
+    if (res.success) clearCategoriesCache();
+    return res;
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to update category' };
   }
@@ -120,9 +133,11 @@ export const deleteCategory = async (
   handle: string
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    return await apiRequest<{ success: boolean }>(`/categories/${handle}`, {
+    const res = await apiRequest<{ success: boolean }>(`/categories/${handle}`, {
       method: 'DELETE',
     });
+    if (res.success) clearCategoriesCache();
+    return res;
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to delete category' };
   }

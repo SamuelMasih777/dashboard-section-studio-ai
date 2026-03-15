@@ -1,12 +1,19 @@
-import { apiRequest, API_BASE_URL } from './client';
-import type { Bundle } from '../lib/types';
+import { apiRequest } from './client';
+import { Bundle, PaginationInfo } from '../lib/types';
 
 // ─── Types ───────────────────────────────────────────────
 
 export interface BundlesListResponse {
   success: boolean;
   data: Bundle[];
+  pagination: PaginationInfo;
   error?: string;
+}
+
+export interface BundleFilters {
+  search?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface BundleDetailResponse {
@@ -32,16 +39,50 @@ export interface CreateBundlePayload {
   thumbnail?: File;
 }
 
+// ─── Cache ────────────────────────────────────────────────
+let bundlesCache: BundlesListResponse | null = null;
+export const clearBundlesCache = () => { bundlesCache = null; };
+
 // ─── Endpoints ───────────────────────────────────────────
 
 /**
  * GET /api/bundles/ — Retrieve all bundles. Requires Auth.
  */
-export const getBundles = async (): Promise<BundlesListResponse> => {
+export const getBundles = async (
+  filters: BundleFilters = {}
+): Promise<BundlesListResponse> => {
+  // Simple cache for default listing (unfiltered)
+  const isDefaultFetch = !filters.search && !filters.page && (!filters.limit || filters.limit === 1000);
+  if (isDefaultFetch && bundlesCache) {
+    return bundlesCache;
+  }
+
   try {
-    return await apiRequest<BundlesListResponse>('/bundles');
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') params.append(key, String(value));
+    });
+    const query = params.toString();
+    const endpoint = `/bundles${query ? `?${query}` : ''}`;
+    const res = await apiRequest<BundlesListResponse>(endpoint);
+
+    if (res.success && isDefaultFetch) {
+      bundlesCache = res;
+    }
+
+    return res;
   } catch (error: any) {
-    return { success: false, data: [], error: error.message || 'Failed to fetch bundles' };
+    return { 
+      success: false, 
+      data: [], 
+      pagination: {
+        totalCount: 0,
+        totalPages: 0,
+        currentPage: 1,
+        limit: 10
+      }, 
+      error: error.message || 'Failed to fetch bundles' 
+    };
   }
 };
 
@@ -65,26 +106,12 @@ export const createBundle = async (
   formData: FormData
 ): Promise<CreateBundleResponse> => {
   try {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const response = await fetch(`${API_BASE_URL}/bundles`, {
+    const res = await apiRequest<CreateBundleResponse>('/bundles', {
       method: 'POST',
-      headers,
       body: formData,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return {
-        success: false,
-        error: errorData.message || `HTTP error! status: ${response.status}`,
-      };
-    }
-
-    const data = await response.json();
-    return { success: true, bundleId: data.bundleId };
+    if (res.success) clearBundlesCache();
+    return res;
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to create bundle' };
   }
@@ -98,26 +125,12 @@ export const updateBundle = async (
   formData: FormData
 ): Promise<CreateBundleResponse> => {
   try {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const response = await fetch(`${API_BASE_URL}/bundles/${id}`, {
+    const res = await apiRequest<CreateBundleResponse>(`/bundles/${id}`, {
       method: 'PUT',
-      headers,
       body: formData,
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return {
-        success: false,
-        error: errorData.message || `HTTP error! status: ${response.status}`,
-      };
-    }
-
-    const data = await response.json();
-    return { success: true, bundleId: data.bundleId };
+    if (res.success) clearBundlesCache();
+    return res;
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to update bundle' };
   }
@@ -130,9 +143,11 @@ export const deleteBundle = async (
   id: string
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    return await apiRequest<{ success: boolean }>(`/bundles/${id}`, {
+    const res = await apiRequest<{ success: boolean }>(`/bundles/${id}`, {
       method: 'DELETE',
     });
+    if (res.success) clearBundlesCache();
+    return res;
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to delete bundle' };
   }
