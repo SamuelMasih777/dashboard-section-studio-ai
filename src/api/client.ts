@@ -82,13 +82,13 @@ export async function apiRequest<T>(
 
     // Global interceptor: if API returns 401 or 400, forcibly log the user out 
     // (Ensure we don't redirect loop if they are already on the login page)
-    // if (response.status === 401 || response.status === 400) {
-    //   if (window.location.pathname !== '/login') {
-    //     localStorage.removeItem('user');
-    //     localStorage.removeItem('token');
-    //     window.location.href = '/login';
-    //   }
-    // }
+    if (response.status === 401 || response.status === 400) {
+      if (window.location.pathname !== '/login') {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    }
 
     throw error;
   }
