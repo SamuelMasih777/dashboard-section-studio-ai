@@ -63,8 +63,11 @@ export function CreateSectionPage() {
   // Visibility
   const [isPublished, setIsPublished] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   // Form State
+  const [handle, setHandle] = useState('');
+  const [isHandleEdited, setIsHandleEdited] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,7 +80,15 @@ export function CreateSectionPage() {
       .replace(/-+$/, '');
   };
 
-  const generatedHandle = slugify(title);
+  const currentHandle = handle || slugify(title);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setTitle(val);
+    if (!isHandleEdited) {
+      setHandle(slugify(val));
+    }
+  };
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -146,6 +157,7 @@ export function CreateSectionPage() {
     try {
       const formData = new FormData();
       formData.append('title', title);
+      formData.append('handle', handle || slugify(title));
       formData.append('description', description);
       formData.append('price', price);
       if (compareAtPrice) formData.append('compareAtPrice', compareAtPrice);
@@ -154,6 +166,7 @@ export function CreateSectionPage() {
       formData.append('demoUrl', demoUrl);
       formData.append('isFeatured', isFeatured.toString());
       formData.append('isPublished', isDraft ? 'false' : isPublished.toString());
+      formData.append('isActive', isActive.toString());
       formData.append('presetsCount', presetsCount);
       formData.append('sortOrder', sortOrder);
       if (previewVideoUrl) formData.append('previewVideoUrl', previewVideoUrl);
@@ -233,15 +246,29 @@ export function CreateSectionPage() {
           <h2 className="text-sm font-semibold tracking-wider text-muted-foreground uppercase mb-6">Basic Info</h2>
           
           <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium mb-2">Title <span className="text-destructive">*</span></label>
-              <Input 
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Testimonial #9"
-                className="glass-input text-lg font-medium"
-              />
-              <p className="text-xs text-muted-foreground mt-2">Handle auto-generated: {generatedHandle || '...'}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-medium mb-2">Title <span className="text-destructive">*</span></label>
+                <Input 
+                  value={title}
+                  onChange={handleTitleChange}
+                  placeholder="e.g. Testimonial #9"
+                  className="glass-input text-lg font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Handle <span className="text-destructive">*</span></label>
+                <Input 
+                  value={handle}
+                  onChange={(e) => {
+                    setHandle(e.target.value);
+                    setIsHandleEdited(true);
+                  }}
+                  placeholder="e.g. testimonial-9"
+                  className="glass-input text-lg font-medium"
+                />
+                <p className="text-xs text-muted-foreground mt-2">Used for URLs and API references.</p>
+              </div>
             </div>
 
             <div>
@@ -391,7 +418,7 @@ export function CreateSectionPage() {
               Drop .liquid file here or click to upload
             </p>
             <p className="text-sm text-muted-foreground">
-              {generatedHandle ? `${generatedHandle}.liquid` : 'testimonial-9.liquid'} — will be stored on S3 and URL saved to SectionFile table
+              {currentHandle ? `${currentHandle}.liquid` : 'testimonial-9.liquid'} — will be stored on S3 and URL saved to SectionFile table
             </p>
           </div>
 
@@ -418,7 +445,7 @@ export function CreateSectionPage() {
             <Input 
               value={demoUrl}
               onChange={(e) => setDemoUrl(e.target.value)}
-              placeholder={`https://demo.yourdomain.com/products/${generatedHandle || 'testimonial-9'}`}
+              placeholder={`https://demo.yourdomain.com/products/${currentHandle || 'testimonial-9'}`}
               className="glass-input"
             />
             <p className="text-xs text-muted-foreground mt-1">Link to your live demo store page showing this section</p>
@@ -558,6 +585,24 @@ export function CreateSectionPage() {
                 </div>}
               </div>
               <span className="text-sm font-medium group-hover:text-primary transition-colors">Featured (shown in spotlight row)</span>
+            </label>
+
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative flex items-center justify-center">
+                <input 
+                  type="checkbox" 
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  className="peer sr-only"
+                />
+                <div className="w-5 h-5 border-2 border-muted-foreground rounded bg-background peer-checked:bg-primary peer-checked:border-primary transition-colors"></div>
+                {isActive && <div className="absolute inset-0 flex items-center justify-center text-primary-foreground">
+                  <svg className="w-3 h-3" viewBox="0 0 14 10" fill="none">
+                    <path d="M1 5L4.5 8.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>}
+              </div>
+              <span className="text-sm font-medium group-hover:text-primary transition-colors">Active (internal status)</span>
             </label>
           </div>
         </Card>
